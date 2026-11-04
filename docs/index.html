@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chess Tic Tac Toe</title>
+<meta name="description" content="A 4x4 board game: spawn pieces on your back row, then move and capture like chess to line up four.">
+<style>
+  :root { --bg:#f6f4ef; --fg:#1d1b18; --muted:#6b665e; --accent:#2f6f4f; --card:#fff; --line:#ddd8cd; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#16150f; --fg:#f1eee6; --muted:#a39d90; --accent:#6fcf9f; --card:#1f1d16; --line:#34312a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.6 system-ui, sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:40px 16px 64px; }
+  h1 { font-size:2.2rem; margin:0 0 8px; }
+  h2 { margin:40px 0 12px; }
+  p { margin:0 0 14px; }
+  .muted { color:var(--muted); }
+  .btn { display:inline-block; background:var(--accent); color:#fff; padding:12px 22px; border-radius:8px; text-decoration:none; font-weight:600; }
+  @media (prefers-color-scheme: dark) { .btn { color:#0c1a12; } }
+  video { width:100%; height:auto; border-radius:10px; border:1px solid var(--line); background:#000; display:block; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Chess Tic Tac Toe</h1>
+  <p>A 4x4 board game. Both sides have a pawn, rook, knight and bishop. Spawn pieces on your back row, then move and capture like chess to line up four in a row, or wipe out every enemy piece on the board.</p>
+  <p><a class="btn" href="play/">Play now</a></p>
+
+  <h2 id="demo">Demo</h2>
+  <video controls playsinline preload="none" poster="assets/demo-poster.jpg">
+    <source src="assets/demo.mp4" type="video/mp4">
+    <p>Your browser can't play this video. <a href="assets/demo.mp4">Download the demo</a>.</p>
+  </video>
+  <p class="muted">A 22-second replay of one real 17-turn game. White and Black each spawn three pieces, trade captures across the board, and White finishes with a diagonal line of four.</p>
+
+  <h2>How it works</h2>
+  <div class="card">
+    <p>Spawn pieces only on your own back row. After your first three turns you can move a piece like in chess, capture, or spawn a piece from home. A captured piece goes back to its owner's home and costs a turn to spawn again.</p>
+    <p>Win with four of your pieces in a line (your own back row doesn't count) or by capturing the last enemy piece on the board. <a href="https://github.com/SoyamDarshan/chess-tic-tac-toe/blob/main/docs/RULES.md">Read the full rules</a>.</p>
+  </div>
+
+  <p class="muted" style="margin-top:32px"><a href="https://github.com/SoyamDarshan/chess-tic-tac-toe">Source on GitHub</a></p>
+</main>
+</body>
+</html>
