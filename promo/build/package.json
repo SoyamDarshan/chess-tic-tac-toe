@@ -1,0 +1,7 @@
+{
+  "name": "chess-tic-tac-toe-launch-video",
+  "private": true,
+  "description": "Scripts that regenerate the launch video in ../brag.mp4",
+  "dependencies": { "@fontsource/instrument-sans": "^5.2.0", "@fontsource/unbounded": "^5.2.0" },
+  "devDependencies": { "playwright": "^1.50.0" }
+}

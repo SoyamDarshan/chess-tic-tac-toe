@@ -1,3 +1,12 @@
 node_modules/
 *.log
 .DS_Store
+promo/build/node_modules/
+promo/build/frames/
+promo/build/fonts/
+promo/build/video.html
+promo/build/game.json
+promo/build/events.json
+promo/build/music.wav
+promo/build/still_*.png
+promo/build/package-lock.json

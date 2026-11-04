@@ -1,0 +1,230 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Chess Tic Tac Toe launch video</title>
+<style>
+@font-face { font-family: 'Unbounded'; font-weight: 500; src: url(fonts/unbounded-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Unbounded'; font-weight: 700; src: url(fonts/unbounded-latin-700-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Instrument Sans'; font-weight: 500; src: url(fonts/instrument-sans-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Instrument Sans'; font-weight: 600; src: url(fonts/instrument-sans-latin-600-normal.woff2) format('woff2'); }
+:root {
+  --bg: #12161b; --panel: #1b222a; --line: #2b3541; --ink: #e9eef3; --muted: #93a0ae;
+  --sq-light: #c6d1db; --sq-dark: #6e8296; --accent: #f2b84b; --win: #4fd1a1; --win-dk: #2fae82; --danger: #ff6b6b;
+  --display: 'Unbounded', 'Trebuchet MS', sans-serif; --body: 'Instrument Sans', system-ui, sans-serif;
+  --pieces: 'DejaVu Sans', 'Noto Sans Symbols 2', 'Segoe UI Symbol', sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: radial-gradient(1200px 800px at 70% 45%, #1a212a 0%, var(--bg) 70%); color: var(--ink); font-family: var(--body); }
+.abs { position: absolute; }
+#hook { left: 0; right: 0; top: 0; bottom: 0; display: grid; place-items: center; text-align: center; font: 700 136px/1.14 var(--display); letter-spacing: -0.02em; }
+#hook em { font-style: normal; color: var(--accent); }
+.copy { left: 120px; width: 850px; top: 215px; }
+.copy h2 { margin: 0; font: 700 88px/1.1 var(--display); letter-spacing: -0.02em; }
+.copy p { margin: 34px 0 0; font: 500 40px/1.35 var(--body); color: var(--muted); max-width: 760px; }
+.card { left: 120px; top: 700px; width: 850px; padding: 26px 32px; background: var(--panel); border: 2px solid var(--line); border-radius: 22px; display: flex; flex-direction: column; gap: 8px; }
+.card b { font: 600 34px/1.3 var(--body); }
+.card span { font: 500 27px/1.4 var(--body); color: var(--muted); }
+.card .threat { color: var(--danger); font-weight: 600; margin-top: 6px; }
+.card.over { border-color: var(--win); } .card.over b { color: var(--win); }
+#board { left: 1060px; top: 200px; width: 680px; height: 680px; border: 5px solid var(--line); border-radius: 22px; overflow: hidden; }
+.sq { position: absolute; width: 170px; height: 170px; background: var(--sq-light); }
+.sq.dk { background: var(--sq-dark); }
+.sq.sw { box-shadow: inset 0 -9px 0 #fbfcfd; } .sq.sb { box-shadow: inset 0 9px 0 #10151a; }
+.sq .coord { position: absolute; left: 11px; bottom: 6px; font: 600 20px var(--body); color: rgba(16,21,26,.55); }
+.sq .tint, .sq .sel, .sq .ring, .sq .dot { position: absolute; opacity: 0; }
+.sq .tint { inset: 0; }
+.sq .sel { inset: 0; box-shadow: inset 0 0 0 9px var(--accent); }
+.sq .ring { inset: 0; box-shadow: inset 0 0 0 9px var(--danger); }
+.sq .dot { left: 66px; top: 66px; width: 38px; height: 38px; border-radius: 50%; background: rgba(16,21,26,.42); }
+.sq .cap { left: 14px; top: 14px; width: 142px; height: 142px; border-radius: 50%; background: transparent; border: 9px solid rgba(16,21,26,.55); }
+.tray { left: 1060px; width: 680px; height: 96px; border: 2px dashed var(--line); border-radius: 18px; }
+.tray .who { position: absolute; left: 22px; top: 0; bottom: 0; display: flex; align-items: center; gap: 12px; font: 600 22px var(--body); letter-spacing: .1em; color: var(--muted); }
+.dot2 { width: 20px; height: 20px; border-radius: 50%; border: 3px solid #10151a; background: #fbfcfd; }
+.dot2.b { background: #10151a; border-color: #8fa1b3; }
+.chip { position: absolute; width: 84px; height: 84px; border-radius: 14px; border: 2px solid var(--line); background: var(--panel); top: 4px; opacity: .45; }
+#pieces { left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+.pc { position: absolute; left: 0; top: 0; width: 170px; height: 170px; display: grid; place-items: center; transform-origin: 50% 50%; }
+.pc .g { font: 400 118px/1 var(--pieces); }
+.pc.w .g { color: #fbfcfd; -webkit-text-stroke: 2.6px #10151a; paint-order: stroke fill; text-shadow: 0 3px 0 rgba(0,0,0,.25); }
+.pc.b .g { color: #10151a; paint-order: stroke fill; }
+.pc .dir { position: absolute; right: 16px; width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; }
+.pc .dir.up { top: 14px; border-bottom: 14px solid var(--accent); } .pc .dir.dn { bottom: 14px; border-top: 14px solid var(--accent); }
+#burst { width: 170px; height: 170px; border-radius: 50%; border: 10px solid var(--accent); opacity: 0; }
+#outro { left: 0; right: 0; top: 0; bottom: 0; text-align: center; }
+#outro .row { position: absolute; left: 0; right: 0; top: 190px; display: flex; justify-content: center; gap: 6px; }
+#outro .row span { font: 400 124px/1 var(--pieces); }
+#outro .row .w { color: #fbfcfd; -webkit-text-stroke: 3px #10151a; paint-order: stroke fill; }
+#outro .row .b { color: #10151a; -webkit-text-stroke: 3px #9fb0c2; paint-order: stroke fill; }
+#outro h1 { position: absolute; left: 0; right: 0; top: 360px; margin: 0; font: 700 132px/1.1 var(--display); letter-spacing: -0.02em; }
+#outro .feat { position: absolute; left: 0; right: 0; top: 640px; font: 500 48px/1.3 var(--body); color: var(--ink); }
+#outro .play { position: absolute; left: 0; right: 0; top: 740px; font: 600 44px/1.3 var(--body); color: var(--accent); }
+</style>
+<div id="stage">
+  <div id="hook" class="abs"><div>Tic tac toe,<br><em>with chess pieces.</em></div></div>
+
+  <div id="copy" class="abs copy"><h2 id="cap"></h2><p id="sub"></p></div>
+  <div id="card" class="abs card"><b id="cardHead"></b><span id="cardSub"></span><span id="cardThreat" class="threat"></span></div>
+
+  <div id="trayB" class="abs tray" style="top:80px"><div class="who"><i class="dot2 b"></i>BLACK</div></div>
+  <div id="board" class="abs"></div>
+  <div id="trayW" class="abs tray" style="top:904px"><div class="who"><i class="dot2"></i>WHITE</div></div>
+  <div id="pieces" class="abs"></div>
+  <div id="burst" class="abs"></div>
+
+  <div id="outro" class="abs">
+    <div class="row"><span class="w">&#9823;&#xFE0E;</span><span class="w">&#9820;&#xFE0E;</span><span class="w">&#9822;&#xFE0E;</span><span class="w">&#9821;&#xFE0E;</span><span class="b">&#9823;&#xFE0E;</span><span class="b">&#9820;&#xFE0E;</span><span class="b">&#9822;&#xFE0E;</span><span class="b">&#9821;&#xFE0E;</span></div>
+    <h1>Chess Tic Tac Toe</h1>
+    <div class="feat">Five computer levels &nbsp;·&nbsp; Undo &nbsp;·&nbsp; Hints</div>
+    <div class="play">Plays in your browser</div>
+  </div>
+</div>
+<script>
+/*TIMELINE*/
+</script>
+<script>
+const DATA = /*DATA*/;
+const T = window.TL;
+const TYPES = ['P', 'R', 'N', 'B'];
+const GLYPH = { P: '♟︎', R: '♜︎', N: '♞︎', B: '♝︎' };
+const S = 170, BX = 1060, BY = 200, TRAYX = 1060, TRAYY = { b: 80, w: 904 }, TRAYH = 96, CHIP = 84, GAP = 14, SLOT0 = TRAYX + 170;
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const ramp = (t, a, b) => clamp((t - a) / (b - a));
+const ease = (x) => x * x * (3 - 2 * x);
+const lerp = (a, b, k) => a + (b - a) * k;
+
+// ---- build the static scene ----
+const board = $('board');
+const sqs = [];
+for (let i = 0; i < 16; i++) {
+  const r = i >> 2, c = i & 3;
+  const d = document.createElement('div');
+  d.className = 'sq' + ((r + c) % 2 ? ' dk' : '') + (r === 3 ? ' sw' : '') + (r === 0 ? ' sb' : '');
+  d.style.left = c * S + 'px'; d.style.top = r * S + 'px';
+  d.innerHTML = '<div class="tint"></div><div class="sel"></div><div class="ring"></div><div class="dot"></div><div class="dot cap"></div><div class="coord">' + 'abcd'[c] + (4 - r) + '</div>';
+  board.appendChild(d);
+  sqs.push({ el: d, tint: d.children[0], sel: d.children[1], ring: d.children[2], dot: d.children[3], cap: d.children[4], dk: (r + c) % 2 === 1 });
+}
+for (const [id, tray] of [['b', $('trayB')], ['w', $('trayW')]]) {
+  TYPES.forEach((t, k) => { const ch = document.createElement('div'); ch.className = 'chip'; ch.style.left = (170 + k * (CHIP + GAP) - 2) + 'px'; tray.appendChild(ch); });
+}
+const pcs = {};
+for (const s of ['w', 'b']) for (const t of TYPES) {
+  const d = document.createElement('div'); d.className = 'pc ' + s;
+  d.innerHTML = '<span class="g">' + GLYPH[t] + '</span>' + (t === 'P' ? '<i class="dir"></i>' : '');
+  $('pieces').appendChild(d);
+  pcs[s + t] = { el: d, g: d.querySelector('.g'), dir: d.querySelector('.dir') };
+}
+
+const sqPos = (i) => ({ x: BX + (i & 3) * S + S / 2 + 5, y: BY + (i >> 2) * S + S / 2 + 5 });
+const slotPos = (id) => ({ x: SLOT0 + TYPES.indexOf(id[1]) * (CHIP + GAP) + CHIP / 2 - 2, y: TRAYY[id[0]] + TRAYH / 2 });
+function where(state, id) {
+  const i = state.board.indexOf(id);
+  return i >= 0 ? { ...sqPos(i), k: 1 } : { ...slotPos(id), k: 0.5 };
+}
+const stateAt = (n) => DATA.states[n];
+
+// ---- timeline ----
+const sc = T.scenes;
+function sceneAlpha(t, [a, b], fin = 0.4, fout = 0.35) { return clamp((t - a) / fin) * clamp((b - t) / fout); }
+function gameTime(t) {
+  if (t < sc.capture[0]) return clamp((t - T.spawnStart) / (T.spawnPer * 6)) * 6;
+  if (t < sc.threat[0]) return 8 + ramp(t, T.capture[0], T.capture[1]);
+  if (t < sc.win[0]) return 15;
+  return 15 + ramp(t, T.black[0], T.black[1]) + ramp(t, T.finish[0], T.finish[1]);
+}
+
+const TEXT = {
+  spawn: { h: 'Spawn on your back row.', p: 'White at the bottom, Black at the top.' },
+  capture: { h: 'Move like chess. Capture anywhere.', p: 'A captured piece goes home and costs a turn to spawn again.' },
+  threat: { h: 'It warns you before you lose.', p: 'The square that completes a line lights up red.' },
+  win: { h: 'Four in a row wins.', p: 'So does capturing every enemy piece.' }
+};
+const THREAT = 'Threat: White can complete a line on b2. Block it or capture a piece in the line.';
+
+window.render = function (t) {
+  const sceneKey = t < sc.spawn[1] ? 'spawn' : t < sc.capture[1] ? 'capture' : t < sc.threat[1] ? 'threat' : t < sc.win[1] ? 'win' : 'outro';
+  const A = {
+    hook: sceneAlpha(t, sc.hook, 0.5, 0.4),
+    spawn: sceneAlpha(t, sc.spawn), capture: sceneAlpha(t, sc.capture), threat: sceneAlpha(t, sc.threat), win: sceneAlpha(t, sc.win),
+    outro: clamp((t - sc.outro[0]) / 0.5) * clamp((T.total - t) / 0.3)
+  };
+  const boardA = Math.max(A.spawn, A.capture, A.threat, A.win);
+  const copyKey = sceneKey === 'outro' ? null : sceneKey;
+  const copyA = copyKey ? A[copyKey] : 0;
+
+  $('hook').style.opacity = A.hook;
+  $('hook').style.transform = 'translateY(' + (1 - ease(clamp(t / 0.6))) * 24 + 'px)';
+  for (const id of ['board', 'trayB', 'trayW', 'pieces']) $(id).style.opacity = boardA;
+
+  // caption and card
+  const cp = $('copy');
+  cp.style.opacity = copyA;
+  if (copyKey) {
+    $('cap').textContent = TEXT[copyKey].h; $('sub').textContent = TEXT[copyKey].p;
+    const a0 = sc[copyKey][0];
+    cp.style.transform = 'translateY(' + (1 - ease(clamp((t - a0) / 0.5))) * 26 + 'px)';
+  }
+  const card = $('card');
+  const showCard = sceneKey === 'threat' || sceneKey === 'win';
+  card.style.opacity = !showCard ? 0 : sceneKey === 'win' ? ramp(t, T.finish[1] - 0.2, T.finish[1] + 0.2) * A.win : A[sceneKey];
+  if (sceneKey === 'threat') {
+    card.className = 'abs card'; $('cardHead').textContent = 'Black to play: move a piece or spawn one';
+    $('cardSub').textContent = 'Tap a piece to move it, or one in home to spawn it on your start row.'; $('cardThreat').textContent = THREAT;
+  } else if (sceneKey === 'win') {
+    card.className = 'abs card over'; $('cardHead').textContent = 'White wins: four in a row';
+    $('cardSub').textContent = 'Press New game to play again.'; $('cardThreat').textContent = '';
+  }
+
+  // pieces
+  const gt = gameTime(t);
+  const n0 = Math.floor(gt + 1e-9), n1 = Math.min(n0 + 1, DATA.states.length - 1);
+  const f = ease(clamp(gt - n0));
+  const S0 = stateAt(n0), S1 = stateAt(n1);
+  const winP = sceneKey === 'win' ? ramp(t, T.finish[1], T.finish[1] + 0.4) : 0;
+  const onLine = { wR: 1, wN: 1, wB: 1, wP: 1 };
+  for (const id of Object.keys(pcs)) {
+    const a = where(S0, id), b = where(S1, id);
+    const x = lerp(a.x, b.x, f), y = lerp(a.y, b.y, f);
+    const moving = (a.x !== b.x || a.y !== b.y) && f > 0 && f < 1;
+    const k = lerp(a.k, b.k, f) * (moving ? 1 + 0.12 * Math.sin(Math.PI * f) : 1) * (winP && onLine[id] ? 1 + 0.07 * Math.sin(Math.PI * winP) : 1);
+    const p = pcs[id];
+    p.el.style.transform = 'translate(' + (x - S / 2) + 'px,' + (y - S / 2) + 'px) scale(' + k + ')';
+    p.el.style.zIndex = moving ? 5 : 1;
+    const kk = lerp(a.k, b.k, f);
+    p.g.style.webkitTextStroke = (id[0] === 'w' ? 2.6 : 2.2) / kk + 'px ' + (id[0] === 'w' ? '#10151a' : '#9fb0c2');
+    if (p.dir) { const d = (S1.dirs[id] || S0.dirs[id] || (id[0] === 'w' ? -1 : 1)); p.dir.className = 'dir ' + (d < 0 ? 'up' : 'dn'); }
+  }
+
+  // square overlays
+  for (const q of sqs) { q.tint.style.opacity = 0; q.sel.style.opacity = 0; q.ring.style.opacity = 0; q.dot.style.opacity = 0; q.cap.style.opacity = 0; }
+  if (sceneKey === 'capture') {
+    const selA = ramp(t, 7.6, 7.95) * (1 - ramp(t, T.capture[0], T.capture[0] + 0.25));
+    sqs[15].sel.style.opacity = selA;
+    for (const i of DATA.rookTargets) (i === 3 ? sqs[i].cap : sqs[i].dot).style.opacity = selA;
+    const lastA = ramp(t, T.capture[1], T.capture[1] + 0.3);
+    for (const i of [15, 3]) { sqs[i].tint.style.background = 'rgba(242,184,75,.32)'; sqs[i].tint.style.opacity = lastA; }
+  }
+  if (sceneKey === 'threat') {
+    const pulse = 0.7 + 0.3 * Math.sin((t - 11.4) * 6);
+    for (const i of DATA.threat) { sqs[i].ring.style.opacity = ramp(t, 11.45, 11.7) * pulse; }
+  }
+  if (sceneKey === 'win') {
+    const a = winP;
+    for (const i of [3, 6, 9, 12]) { const q = sqs[i]; q.tint.style.background = q.dk ? '#2fae82' : '#4fd1a1'; q.tint.style.opacity = a; }
+    const lastA = ramp(t, T.black[1], T.black[1] + 0.3) * (1 - ramp(t, T.finish[0], T.finish[0] + 0.2));
+    for (const i of [2]) { sqs[i].tint.style.background = 'rgba(242,184,75,.32)'; sqs[i].tint.style.opacity = Math.max(+sqs[i].tint.style.opacity, lastA); }
+  }
+
+  // bursts at the capture and at the winning move
+  const burst = $('burst');
+  const bp = sceneKey === 'capture' ? ramp(t, T.capture[1], T.capture[1] + 0.5) : sceneKey === 'win' ? ramp(t, T.finish[1], T.finish[1] + 0.55) : 0;
+  const bsq = sceneKey === 'capture' ? 3 : 9;
+  if (bp > 0 && bp < 1) { const pp = sqPos(bsq); burst.style.opacity = (1 - bp) * boardA; burst.style.transform = 'translate(' + (pp.x - 85) + 'px,' + (pp.y - 85) + 'px) scale(' + (0.7 + 1.1 * ease(bp)) + ')'; } else burst.style.opacity = 0;
+
+  // outro
+  $('outro').style.opacity = A.outro;
+  $('outro').style.transform = 'translateY(' + (1 - ease(clamp((t - sc.outro[0]) / 0.6))) * 20 + 'px)';
+};
+document.fonts.ready.then(() => { window.render(0); window.READY = true; });
+</script>

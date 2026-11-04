@@ -28,6 +28,7 @@ build.js           builds dist/index.html
 test/              engine tests and a browser smoke test
 tools/balance.js   balance and difficulty simulation
 dist/index.html    the built game
+promo/             launch video and the scripts that regenerate it
 ```
 
 After changing anything in `src/`, run `npm run build` so `dist/index.html` stays current.
