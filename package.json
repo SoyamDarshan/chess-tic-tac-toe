@@ -1,0 +1,14 @@
+{
+  "name": "chess-tic-tac-toe",
+  "version": "1.0.0",
+  "description": "A 4x4 board game: chess pieces race to line up four in a row.",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "node build.js",
+    "test": "node --test \"test/*.test.js\"",
+    "e2e": "node build.js && node test/e2e.js",
+    "balance": "node tools/balance.js"
+  },
+  "engines": { "node": ">=18" }
+}
