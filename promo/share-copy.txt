@@ -1,0 +1,1 @@
+I made a small board game where tic tac toe meets chess. On a 4x4 board you spawn pieces on your back row, move and capture like chess, and line up all four of yours to win. It warns you when you are one move from losing. It plays in the browser, with five computer levels, undo and hints.
