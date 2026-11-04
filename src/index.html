@@ -1,0 +1,62 @@
+<title>Chess Tic Tac Toe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/*STYLES*/
+</style>
+
+<main class="app">
+  <header>
+    <h1>Chess Tic Tac Toe</h1>
+    <p class="sub">Line up all four of your pieces on a 4×4 board before your opponent does.</p>
+  </header>
+
+  <section class="controls" aria-label="Game setup">
+    <div class="seg" role="group" aria-label="Mode">
+      <button id="mode-ai" type="button" aria-pressed="true">vs Computer</button>
+      <button id="mode-2p" type="button" aria-pressed="false">2 players</button>
+    </div>
+    <select id="level" aria-label="Computer level">
+      <option value="beginner">Beginner</option>
+      <option value="easy" selected>Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+      <option value="expert">Expert</option>
+    </select>
+    <span class="spacer"></span>
+    <button id="new" class="btn primary" type="button">New game</button>
+  </section>
+
+  <div id="status" role="status" aria-live="polite"></div>
+  <div class="controls" aria-label="Help">
+    <button id="undo" class="btn" type="button">Undo</button>
+    <button id="hint" class="btn" type="button">Hint</button>
+  </div>
+
+  <div id="tray1" class="tray"></div>
+  <div id="board" class="board" role="grid" aria-label="4 by 4 board"></div>
+  <div id="tray0" class="tray"></div>
+
+  <details class="rules">
+    <summary>How it plays</summary>
+    <ul>
+      <li><b>Goal.</b> Get all four of your pieces (pawn, rook, knight, bishop) in one row, column or diagonal.</li>
+      <li><b>Start row.</b> New pieces can only be spawned on your own back row: the bottom row for White, the top row for Black (marked by a bar in your colour).</li>
+      <li><b>First 3 turns.</b> Each side spawns a piece from home onto its start row.</li>
+      <li><b>After that.</b> On your turn, either move a piece by chess rules, or spawn a piece from home onto your start row. Once on the board, a piece can travel anywhere, including the enemy side, and capture.</li>
+      <li><b>Capturing.</b> A captured piece goes back to its owner's home and needs a turn to spawn again. Your fourth piece also starts at home.</li>
+      <li><b>Wipe-out.</b> You also win at once if you capture the last enemy piece on the board, leaving them with nothing but their home.</li>
+      <li><b>Your own start row never wins.</b> Any other row, column or diagonal of your four pieces does, including the enemy's start row.</li>
+      <li><b>Pawns.</b> Step forward one square, capture one square diagonally forward. White moves up, Black moves down. At the far edge a pawn turns around (the arrow shows its direction).</li>
+      <li><b>No king.</b> There is no check. Rooks and bishops are blocked by any piece in the way.</li>
+      <li><b>Draw.</b> The side to move has no legal move, or 120 turns pass.</li>
+    </ul>
+  </details>
+</main>
+
+<script>
+/*ENGINE*/
+</script>
+<script>
+/*UI*/
+</script>

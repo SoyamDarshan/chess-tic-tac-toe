@@ -1,0 +1,674 @@
+<title>Chess Tic Tac Toe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one centred column. Status line, black's home tray, the 4x4 board, white's home tray, controls, rules. */
+:root {
+  --bg: #12161b;
+  --panel: #1b222a;
+  --line: #2b3541;
+  --ink: #e9eef3;
+  --muted: #93a0ae;
+  --sq-light: #c6d1db;
+  --sq-dark: #6e8296;
+  --accent: #f2b84b;
+  --win: #4fd1a1;
+  --danger: #ff6b6b;
+  --w-fill: #fbfcfd;
+  --w-stroke: #10151a;
+  --b-fill: #10151a;
+  --b-stroke: #8fa1b3;
+  --display: 'Unbounded', 'Trebuchet MS', system-ui, sans-serif;
+  --body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pieces: 'Noto Sans Symbols 2', 'Segoe UI Symbol', 'Apple Symbols', 'DejaVu Sans', sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 var(--body);
+  margin: 0;
+  padding-block: 20px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { width: 100%; max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+h1 { font: 700 22px/1.15 var(--display); letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+.sub { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; color: var(--muted); padding: 7px 12px; font: 500 13px var(--body); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+select, .btn {
+  background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
+  padding: 7px 10px; font: 500 13px var(--body); cursor: pointer;
+}
+.btn.primary { background: var(--accent); color: #1a1405; border-color: var(--accent); font-weight: 600; }
+.spacer { flex: 1; }
+button:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+#status { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; min-height: 64px; display: flex; flex-direction: column; justify-content: center; }
+#status b { font: 600 15px var(--body); }
+#status span { color: var(--muted); font-size: 13px; }
+#status.over { border-color: var(--win); }
+#status .threat { color: var(--danger); font-size: 13px; font-weight: 600; margin-top: 4px; }
+.btn:disabled { opacity: .4; cursor: default; }
+.sq.hint { outline: 3px dashed var(--accent); outline-offset: -3px; }
+.sq.threat { outline: 3px solid var(--danger); outline-offset: -3px; }
+#status.over b { color: var(--win); }
+
+.tray { display: flex; align-items: center; gap: 8px; min-height: 58px; padding: 6px 10px; border-radius: 10px; border: 1px dashed var(--line); }
+.tray .who { font: 600 11px var(--body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); width: 96px; flex: none; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.dot { flex: none; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--w-stroke); background: var(--w-fill); display: inline-block; }
+.dot.b { background: var(--b-fill); border-color: var(--b-stroke); }
+.tray.active { border-color: var(--accent); border-style: solid; }
+.tray .pieces { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; min-width: 0; }
+.tray .none { color: var(--muted); font-size: 13px; }
+.chip { position: relative; width: 46px; height: 46px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); display: grid; place-items: center; cursor: default; padding: 0; }
+.chip.can { cursor: pointer; border-color: #46556a; }
+.chip.can:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+
+.piece { font: 400 30px/1 var(--pieces); font-variant-emoji: text; pointer-events: none; }
+.piece.w { color: var(--w-fill); -webkit-text-stroke: 1.2px var(--w-stroke); paint-order: stroke fill; text-shadow: 0 1px 0 rgba(0,0,0,.25); }
+.piece.b { color: var(--b-fill); -webkit-text-stroke: 0.8px var(--b-stroke); paint-order: stroke fill; }
+.dir { position: absolute; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; right: 4px; pointer-events: none; }
+.dir.up { top: 4px; border-bottom: 6px solid var(--accent); }
+.dir.down { bottom: 4px; border-top: 6px solid var(--accent); }
+
+.board { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); width: 100%; aspect-ratio: 1; border-radius: 10px; overflow: hidden; border: 2px solid var(--line); }
+.sq { position: relative; min-width: 0; min-height: 0; border: 0; padding: 0; display: grid; place-items: center; cursor: default; background: var(--sq-light); }
+.sq.dk { background: var(--sq-dark); }
+.sq.start-w { box-shadow: inset 0 -5px 0 var(--w-fill); }
+.sq.start-b { box-shadow: inset 0 5px 0 var(--b-fill); }
+.sq .piece { font-size: clamp(40px, 15vw, 66px); }
+.sq .dir { right: 8px; border-left-width: 5px; border-right-width: 5px; }
+.sq .dir.up { top: 8px; border-bottom-width: 8px; }
+.sq .dir.down { bottom: 8px; border-top-width: 8px; }
+.sq .coord { position: absolute; left: 5px; bottom: 3px; font: 600 10px var(--body); color: rgba(16,21,26,.55); pointer-events: none; }
+.sq.last::after { content: ""; position: absolute; inset: 0; background: rgba(242,184,75,.28); pointer-events: none; }
+.sq.sel::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 4px var(--accent); pointer-events: none; }
+.sq.target { cursor: pointer; }
+.sq.target::before { content: ""; position: absolute; width: 22%; aspect-ratio: 1; border-radius: 50%; background: rgba(16,21,26,.42); }
+.sq.target.cap::before { width: 86%; background: transparent; border: 4px solid rgba(16,21,26,.55); }
+.sq.own { cursor: pointer; }
+.sq.win { background: var(--win); }
+.sq.win.dk { background: #2fae82; }
+
+details.rules { border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; }
+details.rules summary { cursor: pointer; padding: 11px 0; font-weight: 600; font-size: 14px; }
+details.rules ul { margin: 0 0 12px; padding-left: 18px; color: var(--muted); font-size: 14px; }
+details.rules li { margin: 4px 0; }
+details.rules li b { color: var(--ink); font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) {
+  .sq, .chip { transition: background-color .15s; }
+}
+</style>
+
+<main class="app">
+  <header>
+    <h1>Chess Tic Tac Toe</h1>
+    <p class="sub">Line up all four of your pieces on a 4×4 board before your opponent does.</p>
+  </header>
+
+  <section class="controls" aria-label="Game setup">
+    <div class="seg" role="group" aria-label="Mode">
+      <button id="mode-ai" type="button" aria-pressed="true">vs Computer</button>
+      <button id="mode-2p" type="button" aria-pressed="false">2 players</button>
+    </div>
+    <select id="level" aria-label="Computer level">
+      <option value="beginner">Beginner</option>
+      <option value="easy" selected>Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+      <option value="expert">Expert</option>
+    </select>
+    <span class="spacer"></span>
+    <button id="new" class="btn primary" type="button">New game</button>
+  </section>
+
+  <div id="status" role="status" aria-live="polite"></div>
+  <div class="controls" aria-label="Help">
+    <button id="undo" class="btn" type="button">Undo</button>
+    <button id="hint" class="btn" type="button">Hint</button>
+  </div>
+
+  <div id="tray1" class="tray"></div>
+  <div id="board" class="board" role="grid" aria-label="4 by 4 board"></div>
+  <div id="tray0" class="tray"></div>
+
+  <details class="rules">
+    <summary>How it plays</summary>
+    <ul>
+      <li><b>Goal.</b> Get all four of your pieces (pawn, rook, knight, bishop) in one row, column or diagonal.</li>
+      <li><b>Start row.</b> New pieces can only be spawned on your own back row: the bottom row for White, the top row for Black (marked by a bar in your colour).</li>
+      <li><b>First 3 turns.</b> Each side spawns a piece from home onto its start row.</li>
+      <li><b>After that.</b> On your turn, either move a piece by chess rules, or spawn a piece from home onto your start row. Once on the board, a piece can travel anywhere, including the enemy side, and capture.</li>
+      <li><b>Capturing.</b> A captured piece goes back to its owner's home and needs a turn to spawn again. Your fourth piece also starts at home.</li>
+      <li><b>Wipe-out.</b> You also win at once if you capture the last enemy piece on the board, leaving them with nothing but their home.</li>
+      <li><b>Your own start row never wins.</b> Any other row, column or diagonal of your four pieces does, including the enemy's start row.</li>
+      <li><b>Pawns.</b> Step forward one square, capture one square diagonally forward. White moves up, Black moves down. At the far edge a pawn turns around (the arrow shows its direction).</li>
+      <li><b>No king.</b> There is no check. Rooks and bishops are blocked by any piece in the way.</li>
+      <li><b>Draw.</b> The side to move has no legal move, or 120 turns pass.</li>
+    </ul>
+  </details>
+</main>
+
+<script>
+/**
+ * Chess Tic Tac Toe: rules engine and computer opponent.
+ *
+ * Pure functions over an immutable game state, so the UI, the tests and the
+ * search all share one implementation. See docs/RULES.md for the rules.
+ *
+ * Data model
+ *   Squares are indexed 0..15, row-major from the top (row = i >> 2, col = i & 3).
+ *   Side 0 is White (starts at the bottom, pawns move up). Side 1 is Black.
+ *   Piece: { t: 'P'|'R'|'N'|'B', s: side, d: pawn direction (-1 up, +1 down, 0 otherwise) }
+ *   Move:  { k: 'drop', t, to }            spawn a piece from home
+ *          { k: 'move', from, to }         chess move or capture
+ *   State: { board, home, turn, taken, plies, winner, winBy, line, draw, last }
+ */
+(function (root) {
+  'use strict';
+
+  const TYPES = ['P', 'R', 'N', 'B'];
+  const PLACEMENT_TURNS = 3; // each side's first turns must be spawns
+  const MAX_PLIES = 120; // draw after this many turns in total
+
+  const KNIGHT_STEPS = [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]];
+  const ROOK_DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const BISHOP_DIRS = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+
+  // The 10 lines of the board: 4 rows, 4 columns, 2 diagonals.
+  const LINES = (function () {
+    const lines = [];
+    for (let r = 0; r < 4; r++) lines.push([0, 1, 2, 3].map(c => r * 4 + c));
+    for (let c = 0; c < 4; c++) lines.push([0, 1, 2, 3].map(r => r * 4 + c));
+    lines.push([0, 5, 10, 15], [3, 6, 9, 12]);
+    return lines;
+  })();
+
+  /** Pieces can only be spawned on the side's own back row: White row 3 (bottom), Black row 0 (top). */
+  function isSpawnSquare(side, i) {
+    return (i >> 2) === (side === 0 ? 3 : 0);
+  }
+
+  // A side's own spawn row never wins. Otherwise the first player could spawn four in a row on turn 4.
+  const WIN_LINES = [0, 1].map(side => LINES.filter(line => !line.every(i => isSpawnSquare(side, i))));
+
+  /** Create a piece. A pawn that would have nowhere to step starts turned around. */
+  function makePiece(type, side, row, dir) {
+    if (type !== 'P') return { t: type, s: side, d: 0 };
+    let d = dir || (side === 0 ? -1 : 1);
+    if (row + d < 0 || row + d > 3) d = -d;
+    return { t: type, s: side, d };
+  }
+
+  function newGame() {
+    return {
+      board: new Array(16).fill(null),
+      home: [TYPES.slice(), TYPES.slice()],
+      turn: 0,
+      taken: [0, 0], // turns each side has played
+      plies: 0,
+      winner: null,
+      winBy: null, // 'line' | 'wipe'
+      line: null,
+      draw: false,
+      last: null
+    };
+  }
+
+  function inBounds(r, c) {
+    return r >= 0 && r < 4 && c >= 0 && c < 4;
+  }
+
+  /** Squares the piece on square `i` can move to or capture on. */
+  function targets(board, i) {
+    const p = board[i];
+    const row = i >> 2;
+    const col = i & 3;
+    const out = [];
+    const canLand = (r, c) => {
+      const q = board[r * 4 + c];
+      return !q || q.s !== p.s;
+    };
+
+    if (p.t === 'P') {
+      const r = row + p.d;
+      if (inBounds(r, col) && !board[r * 4 + col]) out.push(r * 4 + col);
+      for (const dc of [-1, 1]) {
+        const q = inBounds(r, col + dc) && board[r * 4 + col + dc];
+        if (q && q.s !== p.s) out.push(r * 4 + col + dc);
+      }
+    } else if (p.t === 'N') {
+      for (const [dr, dc] of KNIGHT_STEPS) {
+        if (inBounds(row + dr, col + dc) && canLand(row + dr, col + dc)) out.push((row + dr) * 4 + col + dc);
+      }
+    } else {
+      for (const [dr, dc] of p.t === 'R' ? ROOK_DIRS : BISHOP_DIRS) {
+        let r = row + dr;
+        let c = col + dc;
+        while (inBounds(r, c)) {
+          if (canLand(r, c)) out.push(r * 4 + c);
+          if (board[r * 4 + c]) break; // blocked (a capture ends the slide too)
+          r += dr;
+          c += dc;
+        }
+      }
+    }
+    return out;
+  }
+
+  /** True while the side to move must still spawn its first pieces. */
+  function inPlacement(g) {
+    return g.taken[g.turn] < PLACEMENT_TURNS;
+  }
+
+  function legalMoves(g) {
+    if (g.winner !== null || g.draw) return [];
+    const side = g.turn;
+    const moves = [];
+    for (const t of g.home[side]) {
+      for (let i = 0; i < 16; i++) {
+        if (!g.board[i] && isSpawnSquare(side, i)) moves.push({ k: 'drop', t, to: i });
+      }
+    }
+    if (!inPlacement(g)) {
+      for (let i = 0; i < 16; i++) {
+        const p = g.board[i];
+        if (p && p.s === side) for (const to of targets(g.board, i)) moves.push({ k: 'move', from: i, to });
+      }
+    }
+    return moves;
+  }
+
+  /** Play a move and return the new state. Does not validate the move: use legalMoves. */
+  function apply(g, m) {
+    const side = g.turn;
+    const board = g.board.slice();
+    const home = [g.home[0].slice(), g.home[1].slice()];
+    let captured = null;
+
+    if (m.k === 'drop') {
+      home[side].splice(home[side].indexOf(m.t), 1);
+      board[m.to] = makePiece(m.t, side, m.to >> 2);
+    } else {
+      const piece = board[m.from];
+      const victim = board[m.to];
+      if (victim) {
+        captured = victim.t;
+        home[victim.s].push(victim.t);
+        home[victim.s].sort((a, b) => TYPES.indexOf(a) - TYPES.indexOf(b));
+      }
+      board[m.from] = null;
+      board[m.to] = piece.t === 'P' ? makePiece('P', side, m.to >> 2, piece.d) : piece;
+    }
+
+    const taken = [g.taken[0], g.taken[1]];
+    taken[side]++;
+    const next = {
+      board, home, taken,
+      turn: side,
+      plies: g.plies + 1,
+      winner: null, winBy: null, line: null, draw: false,
+      last: { k: m.k, from: m.from === undefined ? null : m.from, to: m.to, s: side, captured }
+    };
+
+    const line = WIN_LINES[side].find(l => l.every(i => board[i] && board[i].s === side));
+    if (line) {
+      next.winner = side;
+      next.winBy = 'line';
+      next.line = line;
+      return next;
+    }
+    // Wipe-out: capturing the last enemy piece on the board wins at once.
+    if (captured && !board.some(p => p && p.s !== side)) {
+      next.winner = side;
+      next.winBy = 'wipe';
+      return next;
+    }
+
+    next.turn = 1 - side;
+    if (next.plies >= MAX_PLIES || legalMoves(next).length === 0) next.draw = true;
+    return next;
+  }
+
+  // ---- Computer opponent: negamax with alpha-beta pruning ----
+
+  const WIN_SCORE = 10000;
+  const LINE_WEIGHT = [0, 1, 5, 25, 0]; // by how many of your pieces already sit in an open line
+  const HOME_PENALTY = 0.7; // pieces waiting in home are worth less than pieces on the board
+
+  /** Static score from the point of view of the side to move. */
+  function evaluate(g) {
+    const me = g.turn;
+    const openLineScore = (side) => {
+      let score = 0;
+      for (const line of WIN_LINES[side]) {
+        let mine = 0;
+        let theirs = 0;
+        for (const i of line) {
+          const p = g.board[i];
+          if (p) { if (p.s === side) mine++; else theirs++; }
+        }
+        if (theirs === 0) score += LINE_WEIGHT[mine];
+      }
+      return score;
+    };
+    return openLineScore(me) - openLineScore(1 - me)
+      - HOME_PENALTY * g.home[me].length + HOME_PENALTY * g.home[1 - me].length;
+  }
+
+  function negamax(g, depth, alpha, beta) {
+    if (g.winner !== null) return -(WIN_SCORE + depth); // the side to move has just lost; sooner is worse
+    if (g.draw) return 0;
+    if (depth === 0) return evaluate(g);
+    let best = -Infinity;
+    for (const m of legalMoves(g)) {
+      const v = -negamax(apply(g, m), depth - 1, -beta, -alpha);
+      if (v > best) best = v;
+      if (v > alpha) alpha = v;
+      if (alpha >= beta) break;
+    }
+    return best;
+  }
+
+  /**
+   * Pick a move for the side to move.
+   * @param depth how many turns ahead to look
+   * @param randomness chance (0..1) of playing a random legal move instead, used for the easy levels
+   */
+  function chooseMove(g, depth, randomness) {
+    const moves = legalMoves(g);
+    if (!moves.length) return null;
+    if (randomness && Math.random() < randomness) return moves[Math.floor(Math.random() * moves.length)];
+
+    let best = -Infinity;
+    let pool = [];
+    for (const m of moves) {
+      const next = apply(g, m);
+      const v = next.winner !== null ? WIN_SCORE + depth : -negamax(next, depth - 1, -Infinity, -(best - 0.001));
+      if (v > best + 1e-9) { best = v; pool = [m]; }
+      else if (Math.abs(v - best) <= 1e-9) pool.push(m);
+    }
+    return pool[Math.floor(Math.random() * pool.length)]; // break ties randomly so games vary
+  }
+
+  /** Computer levels: search depth plus how often it plays a random move. Tuned with tools/balance.js. */
+  const LEVELS = {
+    beginner: { depth: 1, randomness: 0.7 },
+    easy: { depth: 1, randomness: 0.35 },
+    medium: { depth: 2, randomness: 0.15 },
+    hard: { depth: 3, randomness: 0 },
+    expert: { depth: 5, randomness: 0 }
+  };
+
+  const api = {
+    TYPES, PLACEMENT_TURNS, MAX_PLIES, LEVELS,
+    newGame, legalMoves, apply, targets, inPlacement, chooseMove, makePiece, isSpawnSquare
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.CTT = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+(function () {
+  var G = window.CTT;
+  var GLYPH = { P: '♟︎', R: '♜︎', N: '♞︎', B: '♝︎' };
+  var NAME = { P: 'pawn', R: 'rook', N: 'knight', B: 'bishop' };
+  var SIDE = ['White', 'Black'];
+  var LEVELS = G.LEVELS;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var boardEl = $('board'), statusEl = $('status');
+  var trayEl = [$('tray0'), $('tray1')];
+  var hist = [], hint = null, hintText = '';
+  var g, mode = 'ai', level = 'easy', sel = null, thinking = false, token = 0, sqEls = [];
+
+  function coord(i) { return 'abcd'[i & 3] + (4 - (i >> 2)); }
+
+  for (var i = 0; i < 16; i++) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sq' + ((((i >> 2) + (i & 3)) % 2) ? ' dk' : '');
+    b.dataset.i = i;
+    b.addEventListener('click', onSquare);
+    boardEl.appendChild(b);
+    sqEls.push(b);
+  }
+
+  function pieceEl(t, s, d) {
+    var f = document.createDocumentFragment();
+    var p = document.createElement('span');
+    p.className = 'piece ' + (s === 0 ? 'w' : 'b');
+    p.textContent = GLYPH[t];
+    f.appendChild(p);
+    if (t === 'P') {
+      var a = document.createElement('i');
+      a.className = 'dir ' + (d < 0 ? 'up' : 'down');
+      f.appendChild(a);
+    }
+    return f;
+  }
+
+  function aiSide() { return mode === 'ai' ? 1 : -1; }
+  function humanTurn() { return g.winner === null && !g.draw && !thinking && g.turn !== aiSide(); }
+
+  function threats() {
+    var out = { sq: {}, list: [], wipe: [] };
+    if (g.winner !== null || g.draw || thinking || !humanTurn()) return out;
+    var gt = Object.assign({}, g, { turn: 1 - g.turn });
+    G.legalMoves(gt).forEach(function (m) {
+      var r = G.apply(gt, m);
+      if (r.winner === null) return;
+      out.sq[m.to] = true;
+      var arr = r.winBy === 'wipe' ? out.wipe : out.list;
+      if (arr.indexOf(m.to) < 0) arr.push(m.to);
+    });
+    return out;
+  }
+
+  function currentMoves() {
+    if (!sel || !humanTurn()) return [];
+    return G.legalMoves(g).filter(function (m) {
+      return sel.kind === 'home' ? (m.k === 'drop' && m.t === sel.t) : (m.k === 'move' && m.from === sel.i);
+    });
+  }
+
+  function render() {
+    var moves = currentMoves();
+    var th = threats();
+    var tmap = {};
+    moves.forEach(function (m) { tmap[m.to] = m; });
+    var over = g.winner !== null || g.draw;
+    for (var i = 0; i < 16; i++) {
+      var el = sqEls[i], p = g.board[i];
+      var cls = 'sq' + ((((i >> 2) + (i & 3)) % 2) ? ' dk' : '');
+      if ((i >> 2) === 3) cls += ' start-w';
+      if ((i >> 2) === 0) cls += ' start-b';
+      if (g.line && g.line.indexOf(i) >= 0) cls += ' win';
+      if (!over && g.last && (g.last.to === i || g.last.from === i)) cls += ' last';
+      if (sel && sel.kind === 'board' && sel.i === i && !over) cls += ' sel';
+      if (tmap[i]) cls += ' target' + (p ? ' cap' : '');
+      if (th.sq[i]) cls += ' threat';
+      if (hint && !over && (hint.to === i || hint.from === i)) cls += ' hint';
+      if (p && p.s === g.turn && humanTurn() && !G.inPlacement(g)) cls += ' own';
+      el.className = cls;
+      el.textContent = '';
+      var c = document.createElement('span');
+      c.className = 'coord'; c.textContent = coord(i);
+      el.appendChild(c);
+      if (p) el.appendChild(pieceEl(p.t, p.s, p.d));
+      el.setAttribute('aria-label', coord(i) + (p ? ', ' + SIDE[p.s] + ' ' + NAME[p.t] : ', empty') + (tmap[i] ? ', move here' : ''));
+    }
+    for (var s = 0; s < 2; s++) renderTray(s, over);
+    renderStatus(over, th);
+    $('undo').disabled = !hist.length;
+    $('hint').disabled = !humanTurn();
+  }
+
+  function renderTray(s, over) {
+    var el = trayEl[s];
+    var active = !over && g.turn === s;
+    el.className = 'tray' + (active ? ' active' : '');
+    el.textContent = '';
+    var label = document.createElement('div');
+    label.className = 'who';
+    var dot = document.createElement('span');
+    dot.className = 'dot' + (s ? ' b' : '');
+    label.appendChild(dot);
+    label.appendChild(document.createTextNode(s === 1 && mode === 'ai' ? 'Computer' : SIDE[s]));
+    el.appendChild(label);
+    var wrap = document.createElement('div');
+    wrap.className = 'pieces';
+    var canPick = active && humanTurn();
+    if (!g.home[s].length) {
+      var n = document.createElement('span');
+      n.className = 'none'; n.textContent = 'Home is empty';
+      wrap.appendChild(n);
+    }
+    g.home[s].forEach(function (t) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (canPick ? ' can' : '');
+      b.disabled = !canPick;
+      var on = sel && sel.kind === 'home' && sel.t === t && active;
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.setAttribute('aria-label', SIDE[s] + ' ' + NAME[t] + ' in home' + (canPick ? ', place on board' : ''));
+      b.appendChild(pieceEl(t, s, s === 0 ? -1 : 1));
+      b.addEventListener('click', function () {
+        hint = null;
+        sel = on ? null : { kind: 'home', t: t };
+        render();
+      });
+      wrap.appendChild(b);
+    });
+    el.appendChild(wrap);
+  }
+
+  function renderStatus(over, th) {
+    var head, sub = '';
+    statusEl.className = over ? 'over' : '';
+    if (g.winner !== null) {
+      head = (mode === 'ai' ? (g.winner === 0 ? 'You win' : 'Computer wins') : SIDE[g.winner] + ' wins') + (g.winBy === 'wipe' ? ': every enemy piece captured' : ': four in a row');
+      sub = 'Press New game to play again.';
+    } else if (g.draw) {
+      head = 'Draw';
+      sub = g.plies >= G.MAX_PLIES ? 'Turn limit reached.' : SIDE[g.turn] + ' has no legal move.';
+    } else if (thinking) {
+      head = 'Computer is thinking…';
+    } else {
+      var s = g.turn;
+      var lead = mode === 'ai' ? (s === 0 ? 'Your turn' : 'Computer') : SIDE[s] + ' to play';
+      if (G.inPlacement(g)) {
+        head = lead + ': place a piece (' + (g.taken[s] + 1) + ' of ' + G.PLACEMENT_TURNS + ')';
+        sub = 'Pick a piece from home, then an empty square on your start row (the ' + (s === 0 ? 'bottom' : 'top') + ' row).';
+      } else {
+        head = lead + ': move a piece' + (g.home[s].length ? ' or spawn one' : '');
+        sub = g.home[s].length ? 'Tap a piece to move it, or one in home to spawn it on your start row.' : 'Tap one of your pieces on the board.';
+      }
+      if (g.last && g.last.captured) sub = SIDE[g.last.s] + ' captured a ' + NAME[g.last.captured] + '. ' + sub;
+    }
+    statusEl.innerHTML = '';
+    var b = document.createElement('b'); b.textContent = head;
+    statusEl.appendChild(b);
+    if (hint && hintText && !over) sub = hintText;
+    if (sub) { var sp = document.createElement('span'); sp.textContent = sub; statusEl.appendChild(sp); }
+    if (th && th.list.length) {
+      var tt = document.createElement('span');
+      tt.className = 'threat';
+      tt.textContent = 'Threat: ' + SIDE[1 - g.turn] + ' can complete a line on ' + th.list.map(coord).join(', ') + '. Block it or capture a piece in the line.';
+      statusEl.appendChild(tt);
+    }
+    if (th && th.wipe.length) {
+      var tw = document.createElement('span');
+      tw.className = 'threat';
+      tw.textContent = 'Threat: ' + SIDE[1 - g.turn] + ' can capture your last piece on the board (' + th.wipe.map(coord).join(', ') + '). Spawn another piece or move it to safety.';
+      statusEl.appendChild(tw);
+    }
+  }
+
+  function onSquare(e) {
+    var i = +e.currentTarget.dataset.i;
+    if (!humanTurn()) return;
+    var m = currentMoves().filter(function (x) { return x.to === i; })[0];
+    if (m) { play(m); return; }
+    hint = null;
+    var p = g.board[i];
+    if (p && p.s === g.turn && !G.inPlacement(g)) {
+      sel = (sel && sel.kind === 'board' && sel.i === i) ? null : { kind: 'board', i: i };
+    } else sel = null;
+    render();
+  }
+
+  function play(m) {
+    hist.push(g);
+    hint = null;
+    g = G.apply(g, m);
+    sel = null;
+    render();
+    maybeAI();
+  }
+
+  function maybeAI() {
+    if (g.winner !== null || g.draw || g.turn !== aiSide()) return;
+    thinking = true;
+    var my = ++token;
+    render();
+    setTimeout(function () {
+      if (my !== token) return;
+      var L = LEVELS[level];
+      var m = G.chooseMove(g, L.depth, L.randomness);
+      thinking = false;
+      if (m) { hist.push(g); g = G.apply(g, m); }
+      render();
+    }, 450);
+  }
+
+  function reset() {
+    hist = []; hint = null; hintText = '';
+    token++;
+    thinking = false;
+    sel = null;
+    g = G.newGame();
+    render();
+  }
+
+  function setMode(m) {
+    mode = m;
+    $('mode-ai').setAttribute('aria-pressed', m === 'ai');
+    $('mode-2p').setAttribute('aria-pressed', m === '2p');
+    $('level').hidden = m !== 'ai';
+    reset();
+  }
+
+  $('mode-ai').addEventListener('click', function () { setMode('ai'); });
+  $('mode-2p').addEventListener('click', function () { setMode('2p'); });
+  $('level').addEventListener('change', function (e) { level = e.target.value; });
+  $('new').addEventListener('click', reset);
+  $('undo').addEventListener('click', function () {
+    if (!hist.length) return;
+    token++; thinking = false; hint = null; sel = null;
+    g = hist.pop();
+    while (mode === 'ai' && g.turn !== 0 && hist.length) g = hist.pop();
+    render();
+  });
+  $('hint').addEventListener('click', function () {
+    if (!humanTurn()) return;
+    var m = G.chooseMove(g, 3, 0);
+    if (!m) return;
+    hint = m;
+    if (m.k === 'drop') { sel = { kind: 'home', t: m.t }; hintText = 'Hint: spawn the ' + NAME[m.t] + ' on ' + coord(m.to) + '.'; }
+    else { sel = { kind: 'board', i: m.from }; hintText = 'Hint: move the ' + NAME[g.board[m.from].t] + ' from ' + coord(m.from) + ' to ' + coord(m.to) + '.'; }
+    render();
+  });
+
+  // Test hook used by test/e2e.js.
+  window.__ctt = { get g() { return g; }, setG: function (x) { g = x; sel = null; hint = null; render(); } };
+  reset();
+})();
+</script>
