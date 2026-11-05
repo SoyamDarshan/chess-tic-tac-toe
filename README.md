@@ -1,10 +1,10 @@
-# Chess Tic Tac Toe
+﻿# Chess Tic Tac Toe
 
 A 4x4 board game. Both sides have a pawn, rook, knight and bishop. Spawn pieces on your back row, then move and capture like chess to line up four in a row, or wipe out every enemy piece on the board.
 
 <a href="https://soyamdarshan.github.io/chess-tic-tac-toe/#demo"><img src="docs/assets/demo-poster.jpg" alt="A 22-second replay of one 17-turn game: both sides spawn pieces, trade captures, and White wins with a diagonal line of four" width="640"></a>
 
-**[Watch the 22-second demo](https://soyamdarshan.github.io/chess-tic-tac-toe/#demo)** · [Play it](https://soyamdarshan.github.io/chess-tic-tac-toe/play/) · [Read the docs](https://soyamdarshan.github.io/chess-tic-tac-toe/)
+**[Watch the 22-second demo](https://soyamdarshan.github.io/chess-tic-tac-toe/#demo)** Â· [Play it](https://soyamdarshan.github.io/chess-tic-tac-toe/play/) Â· [Read the docs](https://soyamdarshan.github.io/chess-tic-tac-toe/)
 
 Play it by opening `dist/index.html` in a browser. It is a single self-contained page: against the computer (five levels) or two players on one screen, with Undo, Hint and a warning when your opponent is about to win.
 
@@ -14,7 +14,7 @@ The site at https://soyamdarshan.github.io/chess-tic-tac-toe/ has the demo video
 
 ## Develop
 
-Needs Node 18 or newer. There are no runtime dependencies.
+Needs Node 22 or newer. There are no runtime dependencies.
 
 | Command | What it does |
 | --- | --- |
